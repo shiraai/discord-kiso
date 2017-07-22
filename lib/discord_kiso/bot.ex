@@ -537,6 +537,7 @@ defmodule DiscordKiso.Bot do
   def del_custom_command(msg) do
     [_ | [command | _]] = msg.content |> String.split
     action = query_data(:commands, "#{guild_id}_!#{command}")
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
 
     case action do
       nil -> reply "Command does not exist."
