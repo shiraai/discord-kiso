@@ -1,6 +1,6 @@
-defmodule DiscordKumaTest do
+defmodule DiscordKisoTest do
   use ExUnit.Case
-  doctest DiscordKuma
+  doctest DiscordKiso
 
   test "the truth" do
     assert 1 + 1 == 2

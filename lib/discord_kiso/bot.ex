@@ -1,19 +1,18 @@
-defmodule DiscordKuma.Bot do
-  use DiscordKuma.Module
-  import DiscordKuma.Util
+defmodule DiscordKiso.Bot do
+  use DiscordKiso.Module
+  import DiscordKiso.Util
 
   # Enforcers
   def admin(msg) do
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     user_id = msg.author.id
     {:ok, member} = Nostrum.Api.get_member(guild_id, user_id)
-    rekyuu_id = 107977662680571904
 
     db = query_data("guilds", guild_id)
 
     is_admin = cond do
-      db == nil -> false
-      db.admin_roles == [] -> false
+      db == nil -> true
+      db.admin_roles == [] -> true
       true -> Enum.member?(for role <- member["roles"] do
         {role_id, _} = role |> Integer.parse
         Enum.member?(db.admin_roles, role_id)
@@ -22,7 +21,6 @@ defmodule DiscordKuma.Bot do
 
     cond do
       is_admin -> true
-      msg.author.id == rekyuu_id -> true
       true -> false
     end
   end
@@ -50,21 +48,15 @@ defmodule DiscordKuma.Bot do
   # Event handlers
   handle :MESSAGE_CREATE do
     enforce :rate_limit do
-      match "!help", do: reply "https://github.com/KumaKaiNi/discord-kuma"
+      match "!help", :help
       match "!avatar", :avatar
-      match "!uptime", :uptime
-      match "!time", :local_time
       match ["!coin", "!flip"], do: reply Enum.random(["Heads.", "Tails."])
       match ["!pick", "!choose"], :pick
       match "!roll", :roll
       match "!predict", :prediction
       match "!smug", :smug
-      match "!np", :lastfm_np
       match "!guidance", :souls_message
-      match "!quote", :get_quote
       match "!safe", :safebooru
-      match ["ty kuma", "thanks kuma", "thank you kuma"], :ty_kuma
-      match_all :custom_command
 
       enforce :nsfw do
         match "!dan", :danbooru
@@ -78,16 +70,12 @@ defmodule DiscordKuma.Bot do
     match ["same", "Same", "SAME"], :same
 
     enforce :admin do
-      match "!kuma", :kuma
+      match ["!ping", "!kiso"], :ping
       match "!setup", :setup
       match "!addrole", :add_role
       match "!delrole", :del_role
       match "!setlog", :set_log_channel
       match "!dellog", :del_log_channel
-      match "!add", :add_custom_command
-      match "!del", :del_custom_command
-      match "!addquote", :add_quote
-      match "!delquote", :del_quote
     end
   end
 
@@ -123,7 +111,7 @@ defmodule DiscordKuma.Bot do
               end
 
               twitch_user = "https://api.twitch.tv/kraken/users?login=#{twitch_username}"
-              headers = %{"Accept" => "application/vnd.twitchtv.v5+json", "Client-ID" => "#{Application.get_env(:discord_kuma, :twitch_client_id)}"}
+              headers = %{"Accept" => "application/vnd.twitchtv.v5+json", "Client-ID" => "#{Application.get_env(:discord_kiso, :twitch_client_id)}"}
 
               request = HTTPoison.get!(twitch_user, headers)
               response = Poison.Parser.parse!((request.body), keys: :atoms)
@@ -171,7 +159,9 @@ defmodule DiscordKuma.Bot do
   end
 
   # Rate limited user commands
-  def help(msg), do: reply "https://github.com/KumaKaiNi/discord-kuma"
+  def help(msg) do
+    reply "temp"
+  end
 
   def avatar(msg) do
     user = msg.mentions |> List.first
@@ -181,32 +171,6 @@ defmodule DiscordKuma.Bot do
       color: 0x00b6b6,
       image: %Nostrum.Struct.Embed.Image{url: url}
     }]
-  end
-
-  def uptime(msg) do
-    url = "https://decapi.me/twitch/uptime?channel=rekyuus"
-    request =  HTTPoison.get! url
-
-    case request.body do
-      "rekyuus is offline" -> reply "Stream is not online!"
-      time -> reply "Stream has been live for #{time}."
-    end
-  end
-
-  def local_time(msg) do
-    {{_, _, _}, {hour, minute, _}} = :calendar.local_time
-
-    h = cond do
-      hour <= 9 -> "0#{hour}"
-      true      -> "#{hour}"
-    end
-
-    m = cond do
-      minute <= 9 -> "0#{minute}"
-      true        -> "#{minute}"
-    end
-
-    reply "It is #{h}:#{m} MST rekyuu's time."
   end
 
   def pick(msg) do
@@ -277,7 +241,7 @@ defmodule DiscordKuma.Bot do
 
   def smug(msg) do
     url = "https://api.imgur.com/3/album/zSNC1"
-    auth = %{"Authorization" => "Client-ID #{Application.get_env(:discord_kuma, :imgur_client_id)}"}
+    auth = %{"Authorization" => "Client-ID #{Application.get_env(:discord_kiso, :imgur_client_id)}"}
 
     request = HTTPoison.get!(url, auth)
     response = Poison.Parser.parse!((request.body), keys: :atoms)
@@ -289,58 +253,12 @@ defmodule DiscordKuma.Bot do
     }]
   end
 
-  def lastfm_np(msg) do
-    timeframe = :os.system_time(:seconds) - 180
-    url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=rekyuu&api_key=#{Application.get_env(:discord_kuma, :lastfm_key)}&format=json&limit=1&from=#{timeframe}"
-
-    request = HTTPoison.get!(url)
-    response = Poison.Parser.parse!((request.body), keys: :atoms)
-    track = response.recenttracks.track
-
-    case List.first(track) do
-      nil -> nil
-      song -> reply "#{song.artist.'#text'} - #{song.name} [#{song.album.'#text'}]"
-    end
-  end
-
   def souls_message(msg) do
     url = "http://souls.riichi.me/api"
     request = HTTPoison.get!(url)
     response = Poison.Parser.parse!((request.body), keys: :atoms)
 
     reply "#{response.message}"
-  end
-
-  def get_quote(msg) do
-    {quote_id, quote_text} = case length(msg.content |> String.split) do
-      1 ->
-        quotes = query_all_data(:quotes)
-        Enum.random(quotes)
-      _ ->
-        [_ | [quote_id | _]] = msg.content |> String.split
-
-        case quote_id |> Integer.parse do
-          {quote_id, _} ->
-            case query_data(:quotes, quote_id) do
-              nil -> {"65535", "Quote does not exist. - KumaKaiNi, 2017"}
-              quote_text -> {quote_id, quote_text}
-            end
-          :error ->
-            quotes = query_all_data(:quotes)
-            Enum.random(quotes)
-        end
-    end
-
-    reply "[\##{quote_id}] #{quote_text}"
-  end
-
-  def custom_command(msg) do
-    action = query_data(:commands, msg.content |> String.split |> List.first)
-
-    case action do
-      nil -> nil
-      action -> reply action
-    end
   end
 
   # Danbooru commands
@@ -500,11 +418,6 @@ defmodule DiscordKuma.Bot do
   end
 
   # Commands that are not rate limited
-  def ty_kuma(msg) do
-    replies = ["np", "don't mention it", "anytime", "sure thing", "ye whateva"]
-    reply Enum.random(replies)
-  end
-
   def hello(msg) do
     replies = ["sup loser", "yo", "ay", "hi", "wassup"]
 
@@ -518,7 +431,7 @@ defmodule DiscordKuma.Bot do
   end
 
   # Administrative commands
-  def kuma(msg) do
+  def ping(msg) do
     IO.inspect msg
     reply "Kuma~!"
   end
@@ -591,65 +504,5 @@ defmodule DiscordKuma.Bot do
     db = Map.put(db, :log, nil)
     store_data("guilds", guild_id, db)
     reply "Okay, I will no longer announce streams."
-  end
-
-  def add_custom_command(msg) do
-    [_ | [command | action]] = msg.content |> String.split
-    action = action |> Enum.join(" ")
-
-    exists = query_data(:commands, "!#{command}")
-    store_data(:commands, "!#{command}", action)
-
-    case exists do
-      nil -> reply "Alright! Type !#{command} to use."
-      _   -> reply "Done, command !#{command} updated."
-    end
-  end
-
-  def del_custom_command(msg) do
-    [_ | [command | _]] = msg.content |> String.split
-    action = query_data(:commands, "!#{command}")
-
-    case action do
-      nil -> reply "Command does not exist."
-      _   ->
-        delete_data(:commands, "!#{command}")
-        reply "Command !#{command} removed."
-    end
-  end
-
-  def add_quote(msg) do
-    [_ | quote_text] = msg.content |> String.split
-    quote_text = quote_text |> Enum.join(" ")
-
-    quotes = case query_all_data(:quotes) do
-      nil -> nil
-      quotes -> quotes |> Enum.sort
-    end
-
-    quote_id = case quotes do
-      nil -> 1
-      _ ->
-        {quote_id, _} = List.last(quotes)
-        quote_id + 1
-    end
-
-    store_data(:quotes, quote_id, quote_text)
-    reply "Quote added! #{quote_id} quotes total."
-  end
-
-  def del_quote(msg) do
-    [_ | [quote_id | _]] = msg.content |> String.split
-
-    case quote_id |> Integer.parse do
-      {quote_id, _} ->
-        case query_data(:quotes, quote_id) do
-          nil -> reply "Quote \##{quote_id} does not exist."
-          _ ->
-            delete_data(:quotes, quote_id)
-            reply "Quote removed."
-        end
-      :error -> reply "You didn't specify an ID number."
-    end
   end
 end
