@@ -67,7 +67,6 @@ defmodule DiscordKiso.Bot do
 
     enforce :admin do
       match ["!ping", "!kiso"], :ping
-      match "!setup", :setup
       match "!addrole", :add_role
       match "!delrole", :del_role
       match "!setlog", :set_log_channel
@@ -155,12 +154,16 @@ defmodule DiscordKiso.Bot do
     unless msg.game, do: remove_streamer(guild_id, user_id)
   end
 
-  handle :GUILD_DELETE do
-    IO.inspect msg
-  end
-
   handle :GUILD_CREATE do
-    IO.inspect msg
+    guild_id = msg.id |> Integer.to_string
+    db = query_data("guilds", guild_id)
+
+    db = case db do
+      nil -> %{admin_roles: [], log: nil, mention_roles: [], mention_users: []}
+      _ -> Map.put(db, :admin_roles, [])
+    end
+
+    store_data("guilds", guild_id, db)
   end
 
   handle _event, do: nil
@@ -181,7 +184,7 @@ defmodule DiscordKiso.Bot do
 
   # Rate limited user commands
   def help(msg) do
-    reply "I'm Kiso. I'll bestow upon you the absolute best victory.\n\n**Initial setup**\nType `!setup` to add your server to my database. From there you should set tell me what roles can edit my settings by using `!addrole :role`.\n\n**Stream Alerts**\nI will always announce everyone in the server when they go live. Just set which channel to announce to by going to that channel and typing `!setlog`.\n\nTo see a full list of commands, see <https://github.com/rekyuu/discord-kiso>."
+    reply "I'm Kiso. I'll bestow upon you the absolute best victory.\n\n**Initial setup**\nYou should tell me what roles can edit my settings by using `!addrole :role`.\n\n**Stream Alerts**\nI will always announce everyone in the server when they go live. Just set which channel to announce to by going to that channel and typing `!setlog`.\n\nTo see a full list of commands, see <https://github.com/rekyuu/discord-kiso>."
   end
 
   def avatar(msg) do
@@ -466,19 +469,6 @@ defmodule DiscordKiso.Bot do
   def ping(msg) do
     IO.inspect msg
     reply "木曾だ。"
-  end
-
-  def setup(msg) do
-    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
-    db = query_data("guilds", guild_id)
-
-    cond do
-      db == nil ->
-        store_data("guilds", guild_id, %{admin_roles: [], log: nil, mention_roles: [], mention_users: []})
-        reply "Hey. Be sure to add an admin role to manage my settings using `!addrole <role>`."
-      db.admin_roles == [] -> reply "No admin roles set, anyone can edit my settings! Change this with `!addrole <role>`."
-      true -> reply "I'm ready to sortie!"
-    end
   end
 
   def add_role(msg) do
