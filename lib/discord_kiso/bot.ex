@@ -159,6 +159,10 @@ defmodule DiscordKiso.Bot do
     IO.inspect msg
   end
 
+  handle :GUILD_CREATE do
+    IO.inspect msg
+  end
+
   handle _event, do: nil
 
   # Remove an individual who is not streaming
