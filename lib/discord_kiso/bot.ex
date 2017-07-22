@@ -72,7 +72,7 @@ defmodule DiscordKiso.Bot do
       match "!delrole", :del_role
       match "!setlog", :set_log_channel
       match "!stoplog", :del_log_channel
-      match "!addhere", :set_log_user
+      match "!addhere", :add_log_user
       match "!delhere", :del_log_user
       match "!add", :add_custom_command
       match "!del", :del_custom_command
