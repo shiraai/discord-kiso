@@ -91,7 +91,8 @@ defmodule DiscordKiso.Bot do
             stream_title = msg.game.name
             stream_url = msg.game.url
             twitch_username = msg.game.url |> String.split("/") |> List.last
-            log_chan = query_data("guilds", guild_id).log
+            db = query_data("guilds", guild_id)
+            log_chan = db.log
 
             stream_list = query_data("streams", guild_id)
 
@@ -102,11 +103,23 @@ defmodule DiscordKiso.Bot do
 
             unless Enum.member?(stream_list, user_id) do
               store_data("streams", guild_id, stream_list ++ [user_id])
+              alert_roles = db.mention_roles
+              alert_users = db.mention_users
 
-              message = case user_id do
-                107977662680571904 -> "**#{username}** is now live on Twitch! @here"
-                _ -> "**#{username}** is now live on Twitch!"
+              is_alert? = cond do
+                Enum.member?(alert_users, user_id) -> true
+                true -> Enum.member?(for role <- member["roles"] do
+                  {role_id, _} = role |> Integer.parse
+                  Enum.member?(alert_roles, role_id)
+                end, true)
               end
+
+              here = cond do
+                is_alert? -> " @here"
+                true -> ""
+              end
+
+              message = "**#{username}** is now live on Twitch!#{alert}#{here}"
 
               twitch_user = "https://api.twitch.tv/kraken/users?login=#{twitch_username}"
               headers = %{"Accept" => "application/vnd.twitchtv.v5+json", "Client-ID" => "#{Application.get_env(:discord_kiso, :twitch_client_id)}"}
