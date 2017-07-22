@@ -71,7 +71,9 @@ defmodule DiscordKiso.Bot do
       match "!addrole", :add_role
       match "!delrole", :del_role
       match "!setlog", :set_log_channel
-      match "!dellog", :del_log_channel
+      match "!stoplog", :del_log_channel
+      match "!addhere", :set_log_user
+      match "!delhere", :del_log_user
       match "!add", :add_custom_command
       match "!del", :del_custom_command
     end
@@ -153,6 +155,10 @@ defmodule DiscordKiso.Bot do
     unless msg.game, do: remove_streamer(guild_id, user_id)
   end
 
+  handle :GUILD_DELETE do
+    IO.inspect msg
+  end
+
   handle _event, do: nil
 
   # Remove an individual who is not streaming
@@ -171,7 +177,7 @@ defmodule DiscordKiso.Bot do
 
   # Rate limited user commands
   def help(msg) do
-    reply "temp"
+    reply "I'm Kiso. I'll bestow upon you the absolute best victory.\n\n**Initial setup**\nType `!setup` to add your server to my database. From there you should set tell me what roles can edit my settings by using `!addrole :role`.\n\n**Stream Alerts**\nI will always announce everyone in the server when they go live. Just set which channel to announce to by going to that channel and typing `!setlog`.\n\nTo see a full list of commands, see <https://github.com/rekyuu/discord-kiso>."
   end
 
   def avatar(msg) do
@@ -515,6 +521,26 @@ defmodule DiscordKiso.Bot do
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
 
+    db = Map.put(db, :log, msg.channel_id)
+    store_data("guilds", guild_id, db)
+    reply "Okay, I will announce streams here!"
+  end
+
+  def del_log_channel(msg) do
+    commands = msg.content |> String.split
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+    db = query_data("guilds", guild_id)
+
+    db = Map.put(db, :log, nil)
+    store_data("guilds", guild_id, db)
+    reply "Okay, I will no longer announce streams."
+  end
+
+  def add_log_user(msg) do
+    commands = msg.content |> String.split
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+    db = query_data("guilds", guild_id)
+
     case commands do
       [_ | ["role" | _roles]] ->
         case msg.mention_roles do
@@ -533,14 +559,11 @@ defmodule DiscordKiso.Bot do
             store_data("guilds", guild_id, db)
             reply "User(s) added. I will mention anyone online when they go live."
         end
-      _ ->
-        db = Map.put(db, :log, msg.channel_id)
-        store_data("guilds", guild_id, db)
-        reply "Okay, I will announce streams here!"
+      _ -> reply "Usage: `!addlog user :user` or `!addlog role :role`"
     end
   end
 
-  def del_log_channel(msg) do
+  def del_log_user(msg) do
     commands = msg.content |> String.split
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
@@ -550,7 +573,7 @@ defmodule DiscordKiso.Bot do
         case msg.mention_roles do
           [] -> reply "You need to specify at least one role."
           roles ->
-            db = Map.put(db, :mention_roles, db.mention_roles -- roles)
+            db = Map.put(db, :mention_roles, db.mention_roles -- roles |> Enum.uniq)
             store_data("guilds", guild_id, db)
             reply "Role(s) removed, they will no longer alert online members."
         end
@@ -559,14 +582,11 @@ defmodule DiscordKiso.Bot do
           [] -> reply "You need to specify at least one user."
           users ->
             user_ids = for user <- users, do: user.id
-            db = Map.put(db, :mention_users, db.mention_users -- user_ids)
+            db = Map.put(db, :mention_users, db.mention_users -- user_ids |> Enum.uniq)
             store_data("guilds", guild_id, db)
             reply "User(s) removed, they will no longer alert online members."
         end
-      _ ->
-        db = Map.put(db, :log, nil)
-        store_data("guilds", guild_id, db)
-        reply "Okay, I will no longer announce streams."
+      _ -> reply "Usage: `!dellog user :user` or `!dellog role :role`"
     end
   end
 
