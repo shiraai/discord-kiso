@@ -41,12 +41,11 @@ That being said, if you ever lose control of me, removing me from your server an
 `!predict :question` - 8ball prediction  
 `!smug` - Posts a random smug anime girl  
 `!guidance` - Random Dark Souls guidance message  
-`!safe :tag` - Posts a random sfw anime image, with or without a tag (see: `!safe help`)
+`!safe :tag` - Posts a random sfw anime image, with or without a tag (Uses Danbooru. See: `!safe help`)
 
 ### NSFW Commands
 
 `!dan :tag1 :tag2` - Default command  
-`!safe :tag1` - Applies `rating:safe` tag  
 `!ecchi :tag1` - Applies `rating:questionable` tag  
 `!lewd :tag1` - Applies `rating:explicit` tag  
 
