@@ -10,18 +10,13 @@ defmodule DiscordKiso.Bot do
 
     db = query_data("guilds", guild_id)
 
-    is_admin = cond do
+    cond do
       db == nil -> true
       db.admin_roles == [] -> true
       true -> Enum.member?(for role <- member["roles"] do
         {role_id, _} = role |> Integer.parse
         Enum.member?(db.admin_roles, role_id)
       end, true)
-    end
-
-    cond do
-      is_admin -> true
-      true -> false
     end
   end
 
