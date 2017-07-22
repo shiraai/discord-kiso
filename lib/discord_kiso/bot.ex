@@ -550,7 +550,7 @@ defmodule DiscordKiso.Bot do
         case msg.mention_roles do
           [] -> reply "You need to specify at least one role."
           roles ->
-            db = Map.put(db, :mention_roles, db.mention_roles ++ roles)
+            db = Map.put(db, :mention_roles, db.mention_roles -- roles)
             store_data("guilds", guild_id, db)
             reply "Role(s) removed, they will no longer alert online members."
         end
