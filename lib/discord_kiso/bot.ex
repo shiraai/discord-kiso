@@ -513,7 +513,6 @@ defmodule DiscordKiso.Bot do
   end
 
   def set_log_channel(msg) do
-    commands = msg.content |> String.split
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
 
@@ -523,7 +522,6 @@ defmodule DiscordKiso.Bot do
   end
 
   def del_log_channel(msg) do
-    commands = msg.content |> String.split
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
 
