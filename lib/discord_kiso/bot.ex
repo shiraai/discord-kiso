@@ -57,6 +57,7 @@ defmodule DiscordKiso.Bot do
       match "!smug", :smug
       match "!guidance", :souls_message
       match "!safe", :safebooru
+      match_all :custom_command
 
       enforce :nsfw do
         match "!dan", :danbooru
@@ -76,6 +77,8 @@ defmodule DiscordKiso.Bot do
       match "!delrole", :del_role
       match "!setlog", :set_log_channel
       match "!dellog", :del_log_channel
+      match "!add", :add_custom_command
+      match "!del", :del_custom_command
     end
   end
 
@@ -261,6 +264,17 @@ defmodule DiscordKiso.Bot do
     reply "#{response.message}"
   end
 
+  def custom_command(msg) do
+    command = msg.content |> String.split |> List.first
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+    action = query_data(:commands, "#{guild_id}_#{command}")
+
+    case action do
+      nil -> nil
+      action -> reply action
+    end
+  end
+
   # Danbooru commands
   def danbooru(msg) do
     {tag1, tag2} = case length(msg.content |> String.split) do
@@ -433,7 +447,7 @@ defmodule DiscordKiso.Bot do
   # Administrative commands
   def ping(msg) do
     IO.inspect msg
-    reply "Kuma~!"
+    reply "木曾だ。"
   end
 
   def setup(msg) do
@@ -443,7 +457,7 @@ defmodule DiscordKiso.Bot do
     cond do
       db == nil ->
         store_data("guilds", guild_id, %{admin_roles: []})
-        reply "Hiya! Be sure to add an admin role to manage my settings using `!addrole <role>`."
+        reply "Hey. Be sure to add an admin role to manage my settings using `!addrole <role>`."
       db.admin_roles == [] -> reply "No admin roles set, anyone can edit my settings! Change this with `!addrole <role>`."
       true -> reply "I'm ready to sortie!"
     end
@@ -504,5 +518,31 @@ defmodule DiscordKiso.Bot do
     db = Map.put(db, :log, nil)
     store_data("guilds", guild_id, db)
     reply "Okay, I will no longer announce streams."
+  end
+
+  def add_custom_command(msg) do
+    [_ | [command | action]] = msg.content |> String.split
+    action = action |> Enum.join(" ")
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+
+    exists = query_data(:commands, "#{guild_id}_!#{command}")
+    store_data(:commands, "#{guild_id}_!#{command}", action)
+
+    case exists do
+      nil -> reply "Alright! Type !#{command} to use."
+      _   -> reply "Done, command !#{command} updated."
+    end
+  end
+
+  def del_custom_command(msg) do
+    [_ | [command | _]] = msg.content |> String.split
+    action = query_data(:commands, "#{guild_id}_!#{command}")
+
+    case action do
+      nil -> reply "Command does not exist."
+      _   ->
+        delete_data(:commands, "#{guild_id}_!#{command}")
+        reply "Command !#{command} removed."
+    end
   end
 end
