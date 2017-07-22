@@ -119,7 +119,7 @@ defmodule DiscordKiso.Bot do
                 true -> ""
               end
 
-              message = "**#{username}** is now live on Twitch!#{alert}#{here}"
+              message = "**#{username}** is now live on Twitch!#{here}"
 
               twitch_user = "https://api.twitch.tv/kraken/users?login=#{twitch_username}"
               headers = %{"Accept" => "application/vnd.twitchtv.v5+json", "Client-ID" => "#{Application.get_env(:discord_kiso, :twitch_client_id)}"}
