@@ -4,7 +4,7 @@
 
 ## Setup
 
-You should set tell me what roles can edit my settings by using `!addrole :role`.
+Type `!setup` to add your server to my database. From there you should set tell me what roles can edit my settings by using `!addrole :role`.
 
 ## Stream Alerts
 
@@ -19,6 +19,7 @@ These commands will check to see if the user's role is part of the administrativ
 That being said, if you ever lose control of me, removing me from your server and re-adding me will reinitialize the administrative list.
 
 `!ping`, `!kiso` - Generic ping, outputs debug info to the console  
+`!setup` - Initializes your server to the database  
 `!addrole :roles` - Adds mentioned roles to allow modification to settings  
 `!delrole :roles` - Removes mentioned roles to allow modification to settings  
 `!setlog` - Sets the log channel for stream announcements  
