@@ -451,7 +451,7 @@ defmodule DiscordKiso.Bot do
 
     cond do
       db == nil ->
-        store_data("guilds", guild_id, %{admin_roles: []})
+        store_data("guilds", guild_id, %{admin_roles: [], log: nil, mention_roles: [], mention_users: []})
         reply "Hey. Be sure to add an admin role to manage my settings using `!addrole <role>`."
       db.admin_roles == [] -> reply "No admin roles set, anyone can edit my settings! Change this with `!addrole <role>`."
       true -> reply "I'm ready to sortie!"
@@ -498,21 +498,63 @@ defmodule DiscordKiso.Bot do
   end
 
   def set_log_channel(msg) do
+    commands = msg.content |> String.split
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
 
-    db = Map.put(db, :log, msg.channel_id)
-    store_data("guilds", guild_id, db)
-    reply "Okay, I will announce streams here!"
+    case commands do
+      [_ | ["role" | _roles]] ->
+        case msg.mention_roles do
+          [] -> reply "You need to specify at least one role."
+          roles ->
+            db = Map.put(db, :mention_roles, db.mention_roles ++ roles |> Enum.uniq)
+            store_data("guilds", guild_id, db)
+            reply "Role(s) added. I will mention anyone online when they go live."
+        end
+      [_ | ["user" | _users]] ->
+        case msg.mentions do
+          [] -> reply "You need to specify at least one user."
+          users ->
+            user_ids = for user <- users, do: user.id
+            db = Map.put(db, :mention_users, db.mention_users ++ user_ids |> Enum.uniq)
+            store_data("guilds", guild_id, db)
+            reply "User(s) added. I will mention anyone online when they go live."
+        end
+      _ ->
+        db = Map.put(db, :log, msg.channel_id)
+        store_data("guilds", guild_id, db)
+        reply "Okay, I will announce streams here!"
+    end
   end
 
   def del_log_channel(msg) do
+    commands = msg.content |> String.split
     guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
     db = query_data("guilds", guild_id)
 
-    db = Map.put(db, :log, nil)
-    store_data("guilds", guild_id, db)
-    reply "Okay, I will no longer announce streams."
+    case commands do
+      [_ | ["role" | _roles]] ->
+        case msg.mention_roles do
+          [] -> reply "You need to specify at least one role."
+          roles ->
+            db = Map.put(db, :mention_roles, db.mention_roles ++ roles)
+            store_data("guilds", guild_id, db)
+            reply "Role(s) removed, they will no longer alert online members."
+        end
+      [_ | ["user" | _users]] ->
+        case msg.mentions do
+          [] -> reply "You need to specify at least one user."
+          users ->
+            user_ids = for user <- users, do: user.id
+            db = Map.put(db, :mention_users, db.mention_users -- user_ids)
+            store_data("guilds", guild_id, db)
+            reply "User(s) removed, they will no longer alert online members."
+        end
+      _ ->
+        db = Map.put(db, :log, nil)
+        store_data("guilds", guild_id, db)
+        reply "Okay, I will no longer announce streams."
+    end
   end
 
   def add_custom_command(msg) do
