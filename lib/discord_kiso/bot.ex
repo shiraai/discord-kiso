@@ -90,12 +90,16 @@ defmodule DiscordKiso.Bot do
     username = member["user"]["username"]
     db = query_data("guilds", guild_id)
 
-    announce? = case db.stream_role do
+    announce? = case db do
       nil -> true
-      stream_role -> Enum.member?(for role <- member["roles"] do
-        {role_id, _} = role |> Integer.parse
-        stream_role == role_id
-      end, true)
+      db ->
+        case db.stream_role do
+          nil -> true
+          stream_role -> Enum.member?(for role <- member["roles"] do
+            {role_id, _} = role |> Integer.parse
+            stream_role == role_id
+          end, true)
+        end
     end
 
     if msg.game do
