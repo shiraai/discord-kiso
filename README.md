@@ -29,6 +29,10 @@ That being said, if you ever lose control of me, removing me from your server an
 `!delhere user :users` - Bot will not @here everytime these users go live  
 `!addhere role :roles` - Bot will @here everytime users of this role go live  
 `!delhere role :roles` - Bot will not @here everytime users of this role go  live
+`!setmention :role` - Bot will mention this role instead of @here for alerted streams
+`!stopmention` - Bot will mention @here for alerted streams
+`!streamrole :role` - Bot will only announce streams for members of this role
+`!streamany` - Bot will announce streams for everyone on the server
 
 `!add :command ~text` - Adds a custom command with the given text  
 `!del :command` - Removes a custom command  
