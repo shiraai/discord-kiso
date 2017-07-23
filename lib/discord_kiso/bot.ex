@@ -91,7 +91,7 @@ defmodule DiscordKiso.Bot do
     db = query_data("guilds", guild_id)
 
     announce? = case db.stream_role do
-      nil ->
+      nil -> true
       stream_role -> Enum.member?(for role <- member["roles"] do
         {role_id, _} = role |> Integer.parse
         stream_role == role_id
