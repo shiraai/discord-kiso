@@ -20,21 +20,6 @@ defmodule DiscordKiso.Bot do
     end
   end
 
-  def rate_limit(msg) do
-    command = msg.content |> String.split |> List.first
-    {rate, _} = ExRated.check_rate(command, 10_000, 1)
-
-    rate = case admin(msg) do
-      true  -> :ok
-      false -> rate
-    end
-
-    case rate do
-      :ok    -> true
-      :error -> false
-    end
-  end
-
   def nsfw(msg) do
     {:ok, channel} = Nostrum.Api.get_channel(msg.channel_id)
     channel["nsfw"]
@@ -42,24 +27,22 @@ defmodule DiscordKiso.Bot do
 
   # Event handlers
   handle :MESSAGE_CREATE do
-    enforce :rate_limit do
-      match "!help", :help
-      match "!avatar", :avatar
-      match ["!coin", "!flip"], do: reply Enum.random(["Heads.", "Tails."])
-      match ["!pick", "!choose"], :pick
-      match "!roll", :roll
-      match "!predict", :prediction
-      match "!smug", :smug
-      match "!guidance", :souls_message
-      match "!safe", :safebooru
-      match_all :custom_command
+    match "!help", :help
+    match "!avatar", :avatar
+    match ["!coin", "!flip"], do: reply Enum.random(["Heads.", "Tails."])
+    match ["!pick", "!choose"], :pick
+    match "!roll", :roll
+    match "!predict", :prediction
+    match "!smug", :smug
+    match "!guidance", :souls_message
+    match "!safe", :safebooru
+    match_all :custom_command
 
-      enforce :nsfw do
-        match "!dan", :danbooru
-        match "!ecchi", :ecchibooru
-        match "!lewd", :lewdbooru
-        match ["!nhen", "!nhentai", "!doujin"], :nhentai
-      end
+    enforce :nsfw do
+      match "!dan", :danbooru
+      match "!ecchi", :ecchibooru
+      match "!lewd", :lewdbooru
+      match ["!nhen", "!nhentai", "!doujin"], :nhentai
     end
 
     match ["hello", "hi", "hey", "sup"], :hello
