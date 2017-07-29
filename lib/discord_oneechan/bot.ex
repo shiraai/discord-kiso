@@ -4,8 +4,17 @@ defmodule DiscordOneechan.Bot do
 
   # Enforcers
   def admin(msg) do
-    user_id = 66654117510000640
-    msg.author.id == user_id
+    user_ids = [66654117510000640, 107977662680571904]
+    Enum.member?(user_ids, msg.author.id)
+  end
+
+  def watched(msg) do
+    chans = query_data(:chans, 0)
+
+    case chans do
+      nil -> false
+      chans -> Enum.member?(chans, msg.channel_id)
+    end
   end
 
   # Event handlers
@@ -14,6 +23,11 @@ defmodule DiscordOneechan.Bot do
 
     enforce :admin do
       match "!ping", :ping
+      match "!watch", :watch
+    end
+
+    enforce :watched do
+      Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
     end
   end
 
@@ -25,5 +39,14 @@ defmodule DiscordOneechan.Bot do
   def ping(msg) do
     IO.inspect msg
     reply "Pong!"
+  end
+
+  def watch(msg) do
+    chans = query_data(:chans, 0)
+
+    case chans do
+      nil -> store_data(:chans, 0, [msg.channel_id])
+      chans -> store_data(:chans, 0, chans ++ msg.channel_id |> Enum.uniq)
+    end
   end
 end
