@@ -40,11 +40,21 @@ defmodule DiscordOneechan.Bot do
   end
 
   handle :MESSAGE_REACTION_ADD do
-    IO.inspect msg
+    enforce :watched do
+      guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+      role = query_data(:roles, message_id)
+
+      Nostrum.Api.add_guild_member_role(guild_id, msg.user_id, role)
+    end
   end
 
   handle :MESSAGE_REACTION_REMOVE do
-    IO.inspect msg
+    enforce :watched do
+      guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+      role = query_data(:roles, message_id)
+
+      Nostrum.Api.remove_guild_member_role(guild_id, msg.user_id, role)
+    end
   end
 
   def handle_event(_, state) do
