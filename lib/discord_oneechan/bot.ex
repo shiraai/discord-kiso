@@ -42,7 +42,7 @@ defmodule DiscordOneechan.Bot do
   handle :MESSAGE_REACTION_ADD do
     enforce :watched do
       guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
-      role = query_data(:roles, message_id)
+      role = query_data(:roles, msg.message_id)
 
       Nostrum.Api.add_guild_member_role(guild_id, msg.user_id, role)
     end
@@ -51,7 +51,7 @@ defmodule DiscordOneechan.Bot do
   handle :MESSAGE_REACTION_REMOVE do
     enforce :watched do
       guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
-      role = query_data(:roles, message_id)
+      role = query_data(:roles, msg.message_id)
 
       Nostrum.Api.remove_guild_member_role(guild_id, msg.user_id, role)
     end
