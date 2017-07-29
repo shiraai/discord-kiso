@@ -34,7 +34,7 @@ defmodule DiscordOneechan.Bot do
         [role] ->
           store_data(:roles, msg.id, role)
           Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
-        roles -> Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
+        _roles -> Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
       end
     end
   end
@@ -54,7 +54,7 @@ defmodule DiscordOneechan.Bot do
 
     case chans do
       nil -> store_data(:chans, 0, [msg.channel_id])
-      chans -> store_data(:chans, 0, chans ++ msg.channel_id |> Enum.uniq)
+      chans -> store_data(:chans, 0, chans ++ [msg.channel_id] |> Enum.uniq)
     end
 
     Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
