@@ -27,7 +27,15 @@ defmodule DiscordOneechan.Bot do
     end
 
     enforce :watched do
-      Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
+      role = msg.mention_roles
+
+      case role do
+        [] -> Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
+        [role] ->
+          store_data(:roles, msg.id, role)
+          Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
+        roles -> Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
+      end
     end
   end
 
@@ -42,7 +50,7 @@ defmodule DiscordOneechan.Bot do
   end
 
   def watch(msg) do
-    chans = query_data(:chans, 0)
+    chans = query_data(:oneechan, 0)
 
     case chans do
       nil -> store_data(:chans, 0, [msg.channel_id])
