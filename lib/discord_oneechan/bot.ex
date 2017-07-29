@@ -19,11 +19,10 @@ defmodule DiscordOneechan.Bot do
 
   # Event handlers
   handle :MESSAGE_CREATE do
-    match "!help", do: reply "https://github.com/shiraai/discord-oneechan"
-
     enforce :admin do
       match "!ping", :ping
       match "!watch", :watch
+      match "!stop", :stop
     end
 
     enforce :watched do
@@ -35,6 +34,17 @@ defmodule DiscordOneechan.Bot do
           store_data(:roles, msg.id, role)
           Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
         _roles -> Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
+      end
+    end
+  end
+
+  handle :MESSAGE_DELETE do
+    enforce :watched do
+      role = query_data(:roles, msg.id)
+
+      case role do
+        nil -> nil
+        role -> delete_data(:roles, msg.id)
       end
     end
   end
@@ -73,6 +83,17 @@ defmodule DiscordOneechan.Bot do
     case chans do
       nil -> store_data(:chans, 0, [msg.channel_id])
       chans -> store_data(:chans, 0, chans ++ [msg.channel_id] |> Enum.uniq)
+    end
+
+    Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
+  end
+
+  def stop(msg) do
+    chans = query_data(:chans, 0)
+
+    case chans do
+      nil -> store_data(:chans, 0, [])
+      chans -> store_data(:chans, 0, chans -- [msg.channel_id] |> Enum.uniq)
     end
 
     Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
