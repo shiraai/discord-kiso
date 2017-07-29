@@ -39,6 +39,14 @@ defmodule DiscordOneechan.Bot do
     end
   end
 
+  handle :MESSAGE_REACTION_ADD do
+    IO.inspect msg
+  end
+
+  handle :MESSAGE_REACTION_REMOVE do
+    IO.inspect msg
+  end
+
   def handle_event(_, state) do
     {:ok, state}
   end
