@@ -50,11 +50,13 @@ defmodule DiscordOneechan.Bot do
   end
 
   def watch(msg) do
-    chans = query_data(:oneechan, 0)
+    chans = query_data(:chans, 0)
 
     case chans do
       nil -> store_data(:chans, 0, [msg.channel_id])
       chans -> store_data(:chans, 0, chans ++ msg.channel_id |> Enum.uniq)
     end
+
+    Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
   end
 end
