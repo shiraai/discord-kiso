@@ -1,8 +1,8 @@
-defmodule DiscordKiso.Mixfile do
+defmodule DiscordOneechan.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :discord_kiso,
+    [app: :discord_oneechan,
      version: "0.2.0",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
@@ -15,7 +15,7 @@ defmodule DiscordKiso.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [applications: [:nostrum, :logger, :httpoison],
-     mod: {DiscordKiso, []}
+     mod: {DiscordOneechan, []}
     ]
   end
 

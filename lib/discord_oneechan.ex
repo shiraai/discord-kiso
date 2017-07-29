@@ -1,4 +1,4 @@
-defmodule DiscordKiso do
+defmodule DiscordOneechan do
   use Application
   use Supervisor
   require Logger
@@ -9,7 +9,7 @@ defmodule DiscordKiso do
     import Supervisor.Spec
     Logger.info "Starting supervisor..."
 
-    children = for i <- 1..System.schedulers_online, do: worker(DiscordKiso.Bot, [], id: i)
+    children = for i <- 1..System.schedulers_online, do: worker(DiscordOneechan.Bot, [], id: i)
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 end

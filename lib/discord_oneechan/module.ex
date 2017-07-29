@@ -1,10 +1,10 @@
-defmodule DiscordKiso.Module do
+defmodule DiscordOneechan.Module do
   use Nostrum.Consumer
   alias Nostrum.Api
 
   defmacro __using__(_opts) do
     quote do
-      import DiscordKiso.Module
+      import DiscordOneechan.Module
       use Nostrum.Consumer
       alias Nostrum.Api
 
