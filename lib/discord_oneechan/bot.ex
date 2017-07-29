@@ -44,7 +44,7 @@ defmodule DiscordOneechan.Bot do
 
       case role do
         nil -> nil
-        role -> delete_data(:roles, msg.id)
+        _role -> delete_data(:roles, msg.id)
       end
     end
   end
