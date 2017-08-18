@@ -23,6 +23,8 @@ defmodule DiscordOneechan.Bot do
       match "!ping", :ping
       match "!watch", :watch
       match "!stop", :stop
+      match "!role", :add_role_command
+      match_all :custom_role
     end
 
     enforce :watched do
@@ -97,5 +99,64 @@ defmodule DiscordOneechan.Bot do
     end
 
     Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
+  end
+
+  def add_role_command(msg) do
+    [_ | [command | _]] = msg.content |> String.split
+    role = msg.mention_roles |> List.first
+
+    exists = query_data(:commands, "!#{command}")
+    roles = query_data(:commands, :roles)
+    roles = case roles do
+      nil -> []
+      roles -> roles
+    end
+
+    store_data(:commands, "!#{command}", role)
+    store_data(:commands, :roles, roles ++ [role])
+
+    case exists do
+      nil -> reply "Alright! Type !#{command} to use."
+      _   -> reply "Done, command !#{command} updated."
+    end
+  end
+
+  def del_role_command(msg) do
+    [_ | [command | _]] = msg.content |> String.split
+    role = query_data(:commands, "!#{command}")
+
+    case role do
+      nil -> reply "Command does not exist."
+      role ->
+        roles = query_data(:commands, :roles)
+
+        store_data(:commands, :roles, roles -- [role])
+        delete_data(:commands, "!#{command}")
+        reply "Command !#{command} removed."
+    end
+  end
+
+  def custom_role(msg) do
+    role = query_data(:commands, msg.content |> String.split |> List.first)
+
+    case role do
+      nil -> nil
+      role ->
+        roles = query_data(:commands, :roles)
+        guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+        {:ok, member} = Nostrum.Api.get_member(guild_id, user_id)
+
+        cond do
+          Enum.member?(member["roles"], role) -> reply "You already have that role."
+          true ->
+            for member_role <- member["roles"] do
+              if Enum.member?(roles, member_role) do
+                Nostrum.Api.remove_guild_member_role(guild_id, msg.user_id, member_role)
+              end
+            end
+
+            Nostrum.Api.add_guild_member_role(guild_id, msg.user_id, role)
+        end
+    end
   end
 end
