@@ -146,7 +146,7 @@ defmodule DiscordOneechan.Bot do
       role ->
         roles = query_data(:commands, :roles)
         guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
-        {:ok, member} = Nostrum.Api.get_member(guild_id, user_id)
+        {:ok, member} = Nostrum.Api.get_member(guild_id, msg.user_id)
 
         cond do
           Enum.member?(member["roles"], role) -> reply "You already have that role."
@@ -159,6 +159,18 @@ defmodule DiscordOneechan.Bot do
 
             Nostrum.Api.add_guild_member_role(guild_id, msg.user_id, role)
         end
+    end
+  end
+
+  def remove_custom_role(msg) do
+    roles = query_data(:commands, :roles)
+    guild_id = Nostrum.Api.get_channel!(msg.channel_id)["guild_id"]
+    {:ok, member} = Nostrum.Api.get_member(guild_id, msg.user_id)
+
+    for member_role <- member["roles"] do
+      if Enum.member?(roles, member_role) do
+        Nostrum.Api.remove_guild_member_role(guild_id, msg.user_id, member_role)
+      end
     end
   end
 end
