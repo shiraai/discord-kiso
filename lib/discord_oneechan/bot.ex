@@ -24,8 +24,10 @@ defmodule DiscordOneechan.Bot do
       match "!watch", :watch
       match "!stop", :stop
       match "!role", :add_role_command
-      match_all :custom_role
     end
+
+    match "!done", :remove_custom_role
+    match_all :custom_role
 
     enforce :watched do
       role = msg.mention_roles
