@@ -107,7 +107,6 @@ defmodule DiscordOneechan.Bot do
     [_ | [command | _]] = msg.content |> String.split
     role = msg.mention_roles |> List.first
 
-    exists = query_data(:commands, "!#{command}")
     roles = query_data(:commands, :roles)
     roles = case roles do
       nil -> []
@@ -117,10 +116,7 @@ defmodule DiscordOneechan.Bot do
     store_data(:commands, "!#{command}", role)
     store_data(:commands, :roles, roles ++ [role])
 
-    case exists do
-      nil -> reply "Alright! Type !#{command} to use."
-      _   -> reply "Done, command !#{command} updated."
-    end
+    Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
   end
 
   def del_role_command(msg) do
@@ -134,7 +130,7 @@ defmodule DiscordOneechan.Bot do
 
         store_data(:commands, :roles, roles -- [role])
         delete_data(:commands, "!#{command}")
-        reply "Command !#{command} removed."
+        Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
     end
   end
 
@@ -149,8 +145,8 @@ defmodule DiscordOneechan.Bot do
         {:ok, member} = Nostrum.Api.get_member(guild_id, msg.author.id)
 
         cond do
-          Enum.member?(member["roles"], role) ->
-            reply "You already have that role."
+          Enum.member?(member["roles"], role |> Integer.to_string) ->
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, "❌")
           true ->
             for member_role <- member["roles"] do
               {member_role, _} = member_role |> Integer.parse
@@ -161,7 +157,7 @@ defmodule DiscordOneechan.Bot do
             end
 
             Nostrum.Api.add_guild_member_role(guild_id, msg.author.id, role)
-            reply "Role added!"
+            Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
         end
     end
   end
@@ -178,5 +174,7 @@ defmodule DiscordOneechan.Bot do
         Nostrum.Api.remove_guild_member_role(guild_id, msg.author.id, member_role)
       end
     end
+
+    Nostrum.Api.create_reaction(msg.channel_id, msg.id, "✅")
   end
 end
