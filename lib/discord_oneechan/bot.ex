@@ -149,15 +149,19 @@ defmodule DiscordOneechan.Bot do
         {:ok, member} = Nostrum.Api.get_member(guild_id, msg.author.id)
 
         cond do
-          Enum.member?(member["roles"], role) -> reply "You already have that role."
+          Enum.member?(member["roles"], role) ->
+            reply "You already have that role."
           true ->
             for member_role <- member["roles"] do
+              {member_role, _} = member_role |> Integer.parse
+
               if Enum.member?(roles, member_role) do
                 Nostrum.Api.remove_guild_member_role(guild_id, msg.author.id, member_role)
               end
             end
 
             Nostrum.Api.add_guild_member_role(guild_id, msg.author.id, role)
+            reply "Role added!"
         end
     end
   end
@@ -168,6 +172,8 @@ defmodule DiscordOneechan.Bot do
     {:ok, member} = Nostrum.Api.get_member(guild_id, msg.author.id)
 
     for member_role <- member["roles"] do
+      {member_role, _} = member_role |> Integer.parse
+
       if Enum.member?(roles, member_role) do
         Nostrum.Api.remove_guild_member_role(guild_id, msg.author.id, member_role)
       end
