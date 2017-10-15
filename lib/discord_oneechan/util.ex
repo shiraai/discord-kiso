@@ -51,7 +51,7 @@ defmodule DiscordOneechan.Util do
 
   def update_db do
     # Updates roles
-    for {message_id, role_id} <- DiscordOneechan.Util.query_all_data(:roles) do
+    for {message_id, role_id} <- query_all_data(:roles) do
       delete_data :roles, message_id
       store_data :roles, Integer.to_string(message_id), Integer.to_string(role_id)
     end
@@ -62,7 +62,7 @@ defmodule DiscordOneechan.Util do
 
     # Updates commands
     delete_data :commands, :roles
-    for {command, role_id} <- DiscordOneechan.Util.query_all_data(:roles) do
+    for {command, role_id} <- query_all_data(:roles) do
       delete_data :commands, command
       store_data :commands, command, Integer.to_string(role_id)
     end
