@@ -14,7 +14,7 @@ defmodule DiscordOneechan.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:nostrum, :logger, :httpoison],
+    [applications: [:din, :logger],
      mod: {DiscordOneechan, []}
     ]
   end
@@ -29,6 +29,6 @@ defmodule DiscordOneechan.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:nostrum, git: "https://github.com/Kraigie/nostrum.git"}]
+    [{:din, git: "https://github.com/rekyuu/Din"}]
   end
 end
