@@ -5,7 +5,7 @@ defmodule DiscordOneechan.Bot do
 
   # Enforcers
   def admin(data) do
-    user_ids = ["66654117510000640", "107977662680571904"]
+    user_ids = ["66654117510000640", "107977662680571904", "96672649966518272"]
     Enum.member?(user_ids, data.author.id)
   end
 
