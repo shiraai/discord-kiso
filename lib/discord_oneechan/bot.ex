@@ -254,7 +254,7 @@ defmodule DiscordOneechan.Bot do
           # More than one role is specified
           length(message_data.mention_roles) > 1 ->
             Channel.create_reaction(data.channel_id, data.id, "❌")
-            # Something else happened and broke
+          # Something else happened and broke
           true ->
             Channel.create_reaction(data.channel_id, data.id, "❔")
             Logger.error "Error in !update command."
