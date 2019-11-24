@@ -1,6 +1,6 @@
 defmodule DiscordOneechan.Bot do
   use Din.Module
-  alias Din.Resources.{Channel, Guild}
+  alias Din.Resources.{Channel, Guild, User}
   import DiscordOneechan.Util
 
   # Enforcers -----------------------------------------------------------------
@@ -244,11 +244,13 @@ defmodule DiscordOneechan.Bot do
     # Re-adds roles to users.
     reactions = Channel.get_reactions(data.channel_id, message_data.id, "✅")
 
-    for reaction <- reactions do
+    for user <- reactions do
       guild_id = Channel.get(data.channel_id).guild_id
       role = query_data(:roles, message_data.id)
 
-      Guild.add_member_role(guild_id, reaction.id, role)
+      unless user.id == User.get_current_user().id do
+        Guild.add_member_role(guild_id, user.id, role)
+      end
     end
   end
 end
