@@ -233,6 +233,7 @@ defmodule DiscordOneechan.Bot do
       [] -> Channel.create_reaction(data.channel_id, data.id, "❌")
       # A single role is specified
       [role] ->
+        # Re-add message to the database
         store_data(:roles, message_data.id, role)
 
         # Re-adds roles to users.
@@ -248,7 +249,6 @@ defmodule DiscordOneechan.Bot do
         end
 
         Channel.create_reaction(data.channel_id, data.id, "✅")
-      # Something else happened and broke
       _ ->
         cond do
           # More than one role is specified
