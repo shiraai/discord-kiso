@@ -228,9 +228,7 @@ defmodule DiscordOneechan.Bot do
     message_data = Channel.get_message(data.channel_id, message_id)
 
     # Re-processes the specified message contents.
-    role = message_data.mention_roles
-
-    case role do
+    case message_data.mention_roles do
       # No role is specified
       [] -> Channel.create_reaction(data.channel_id, data.id, "❌")
       # A single role is specified
@@ -250,8 +248,16 @@ defmodule DiscordOneechan.Bot do
         end
 
         Channel.create_reaction(data.channel_id, data.id, "✅")
-      # More than one role is specified
-      _roles -> Channel.create_reaction(data.channel_id, data.id, "❌")
+      # Something else happened and broke
+      _ ->
+        cond do
+          # More than one role is specified
+          length(message_data.mention_roles) > 1 ->
+            Channel.create_reaction(data.channel_id, data.id, "❌")
+            # Something else happened and broke
+          true ->
+            Channel.create_reaction(data.channel_id, data.id, "❔")
+        end
     end
   end
 end
