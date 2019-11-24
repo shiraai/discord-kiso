@@ -257,6 +257,13 @@ defmodule DiscordOneechan.Bot do
             # Something else happened and broke
           true ->
             Channel.create_reaction(data.channel_id, data.id, "❔")
+            Logger.error "Error in !update command."
+
+            Logger.warn "Original message:"
+            IO.inspect data
+
+            Logger.warn "Message to update:"
+            IO.inspect message_data
         end
     end
   end
