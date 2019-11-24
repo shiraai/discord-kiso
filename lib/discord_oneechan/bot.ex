@@ -236,21 +236,22 @@ defmodule DiscordOneechan.Bot do
       # A single role is specified
       [role] ->
         store_data(:roles, message_data.id, role)
+
+        # Re-adds roles to users.
+        reactions = Channel.get_reactions(data.channel_id, message_data.id, "✅")
+
+        for user <- reactions do
+          guild_id = Channel.get(data.channel_id).guild_id
+          role = query_data(:roles, message_data.id)
+
+          unless user.id == User.get_current_user().id do
+            Guild.add_member_role(guild_id, user.id, role)
+          end
+        end
+
         Channel.create_reaction(data.channel_id, data.id, "✅")
       # More than one role is specified
       _roles -> Channel.create_reaction(data.channel_id, data.id, "❌")
-    end
-
-    # Re-adds roles to users.
-    reactions = Channel.get_reactions(data.channel_id, message_data.id, "✅")
-
-    for user <- reactions do
-      guild_id = Channel.get(data.channel_id).guild_id
-      role = query_data(:roles, message_data.id)
-
-      unless user.id == User.get_current_user().id do
-        Guild.add_member_role(guild_id, user.id, role)
-      end
     end
   end
 end
